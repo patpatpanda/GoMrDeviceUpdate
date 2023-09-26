@@ -51,7 +51,7 @@ namespace GoMrDevice
 
 			DataContext = navigationStore;
 
-			Task.WhenAll(ToggleFanStateAsync(), GetDevicesTwinAsync());
+			Task.WhenAll(ToggleFanStateAsync(), GetDevicesTwinAsync(), SendTelemetryAsync());
 		}
 
 
