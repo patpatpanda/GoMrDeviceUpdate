@@ -4,12 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GoMrDevice.Models
+namespace AzureFunctionDevice.Models
 {
-	public class DeviceItem
+	public class DeviceStatus
 	{
 		public int Id { get; set; }
-		public DateTime Date { get; set; }
-		public string DeviceMessage { get; set; } = null!;
+		public DateTime? Date { get; set; }
+		public string? DeviceMessage { get; set; }
 	}
 }

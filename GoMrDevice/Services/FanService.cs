@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GoMrDevice.Services
 {
-    class FanService
+   public class FanService
     {
         private bool isOn;
 

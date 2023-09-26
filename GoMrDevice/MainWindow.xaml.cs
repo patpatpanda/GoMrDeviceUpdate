@@ -36,21 +36,22 @@ namespace GoMrDevice
 		public ObservableCollection<Twin> DeviceTwinList { get; set; } = new ObservableCollection<Twin>();
 
 		private readonly DeviceManager _deviceManager;
-		
+		private readonly FanService _fanService;
+		public DeviceConfiguration Configuration { get; set; }
 
-
-		public MainWindow(DeviceManager deviceManager, NavigationStore navigationStore, IoTHubManager iotHub)
+		public MainWindow(DeviceManager deviceManager, NavigationStore navigationStore, IoTHubManager iotHub,FanService fanService,DeviceConfiguration configuration)
 		{
 			InitializeComponent();
-
+			Configuration = configuration;
 			_deviceManager = deviceManager;
 			_iotHub = iotHub;
+			_fanService = fanService;
 
 			DeviceListView.ItemsSource = DeviceTwinList;
 
 			DataContext = navigationStore;
 
-			Task.WhenAll(ToggleFanStateAsync(), GetDevicesTwinAsync());
+			Task.WhenAll(ToggleFanStateAsync(), GetDevicesTwinAsync(), SendTelemetryAsync());
 		}
 
 
@@ -101,16 +102,31 @@ private async void StartButton_Click(object sender, RoutedEventArgs e)
 			{
 				string deviceId = twin.DeviceId;
 				if (!string.IsNullOrEmpty(deviceId))
+				{
 					await _iotHub.SendMethodAsync(new MethodDataRequest
 					{
 						DeviceId = deviceId,
 						MethodName = "start"
 					});
+
+					// Uppdatera Device Twin-egenskapen med DeviceTwinManager
+					await DeviceTwinManager.UpdateReportedTwinAsync(Configuration.DeviceClient, "fanStatus", "On");
+					
+				}
+
+				_fanService.TurnOn();
 			}
 		}
 	}
-	catch (Exception ex) { Debug.WriteLine(ex.Message); }
+	catch (Exception ex)
+	{
+		Debug.WriteLine(ex.Message);
+	}
 }
+
+	
+	
+
 
 private async void StopButton_Click(object sender, RoutedEventArgs e)
 {
@@ -129,7 +145,13 @@ private async void StopButton_Click(object sender, RoutedEventArgs e)
 						DeviceId = deviceId,
 						MethodName = "stop"
 					});
+				await DeviceTwinManager.UpdateReportedTwinAsync(Configuration.DeviceClient, "fanStatus", "Off");
+				
 			}
+
+			_fanService.TurnOn();
+
+
 		}
 	}
 	catch (Exception ex) { Debug.WriteLine(ex.Message); }
@@ -159,11 +181,53 @@ private async void StopButton_Click(object sender, RoutedEventArgs e)
 			}
 		}
 
+		public async Task SendDataAsync(string dataAsJson)
+		{
 
-		
+
+			if (!string.IsNullOrEmpty(dataAsJson))
+			{
+				var message = new Message(Encoding.UTF8.GetBytes(dataAsJson));
+				await Configuration.DeviceClient.SendEventAsync(message);
+				//Console.WriteLine($"Message sent at {DateTime.Now} with data {dataAsJson}");
+
+			}
+
+
+		}
 
 
 
+		private async Task SendTelemetryAsync()
+		{
+			while (true)
+			{
+				if (Configuration.AllowSending)
+				{
+					// Check the lamp state and include it in telemetry data
+					bool lampState = _fanService.IsOn();
+
+					string deviceMessage = lampState ? "The device is on" : "The device is off";
+
+					var telemetryData = new DeviceItem()
+					{
+
+						Date = DateTime.Now,
+
+
+						DeviceMessage = deviceMessage,
+
+					};
+
+					var telemetryJson = JsonConvert.SerializeObject(telemetryData);
+
+					await SendDataAsync(telemetryJson);
+
+				}
+
+				await Task.Delay(Configuration.TelemetryInterval);
+			}
+		}
 
 
 	}
