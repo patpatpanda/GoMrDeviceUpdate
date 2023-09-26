@@ -3,6 +3,7 @@ using Microsoft.Azure.Devices.Client;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,15 +14,17 @@ namespace GoMrDevice.Services
 	{
 		private readonly DeviceConfiguration _config;
 		private readonly DeviceClient _client;
+		public bool CanSendData { get; private set; } = true;
 
 		public DeviceManager(DeviceConfiguration config)
 		{
 			_config = config;
 			// Add this line to your code to check the value of _config.ConnectionString
 			Console.WriteLine($"Connection string from config: {_config.ConnectionString}");
+			_client = DeviceClient.CreateFromConnectionString(_config.ConnectionString);
 
 			// Use the value to create the DeviceClient
-			_client = DeviceClient.CreateFromConnectionString(_config.ConnectionString);
+			
 
 			Task.FromResult(StartAsync());
 		}
@@ -29,12 +32,12 @@ namespace GoMrDevice.Services
 		public bool AllowSending() => _config.AllowSending;
 
 
-		private async Task StartAsync()
+		public async Task StartAsync()
 		{
 			await _client.SetMethodDefaultHandlerAsync(DirectMethodDefaultCallback, null);
 		}
 
-		private async Task<MethodResponse> DirectMethodDefaultCallback(MethodRequest req, object userContext)
+		public async Task<MethodResponse> DirectMethodDefaultCallback(MethodRequest req, object userContext)
 		{
 			var res = new DirectMethodDataResponse { Message = $"Executed method: {req.Name} successfully." };
 
@@ -54,6 +57,22 @@ namespace GoMrDevice.Services
 			}
 
 			return new MethodResponse(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(res)), 200);
+		}
+		public async Task<bool> SendDataAsync(string payload)
+		{
+			try
+			{
+				var message = new Message(Encoding.UTF8.GetBytes(payload));
+				await _client.SendEventAsync(message);
+				await Task.Delay(10);
+				return true;
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine(ex.Message);
+			}
+
+			return false;
 		}
 	}
 }

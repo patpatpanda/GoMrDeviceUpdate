@@ -36,9 +36,8 @@ namespace GoMrDevice
 		public ObservableCollection<Twin> DeviceTwinList { get; set; } = new ObservableCollection<Twin>();
 
 		private readonly DeviceManager _deviceManager;
-		private readonly FanService _fanService;
-		public DeviceConfiguration Configuration { get; set; }
-		public string YourResultProperty { get; set; }
+		
+
 
 		public MainWindow(DeviceManager deviceManager, NavigationStore navigationStore, IoTHubManager iotHub)
 		{
@@ -50,24 +49,93 @@ namespace GoMrDevice
 			DeviceListView.ItemsSource = DeviceTwinList;
 
 			DataContext = navigationStore;
+
 			Task.WhenAll(ToggleFanStateAsync(), GetDevicesTwinAsync());
 		}
 
 
 		private async Task ToggleFanStateAsync()
+{
+    Storyboard fan = (Storyboard)this.FindResource("FanStoryboard");
+
+    while (true)
+    {
+        bool areDevicesOn = _deviceManager.AllowSending();
+
+        // Check if the status of IoT devices has changed
+        if (areDevicesOn)
+        {
+            fan.Begin();
+            SetMessage("The fan is ON.");
+        }
+        else
+        {
+            fan.Stop();
+            SetMessage("The fan is OFF.");
+        }
+
+        await Task.Delay(1000);
+    }
+}
+
+// Helper method to set the message in the UI
+private void SetMessage(string message)
+{
+    // Ensure that this code runs on the UI thread
+    Dispatcher.Invoke(() =>
+    {
+        MessageTextBlock.Text = message;
+    });
+}
+
+
+private async void StartButton_Click(object sender, RoutedEventArgs e)
+{
+	try
+	{
+		Button? button = sender as Button;
+		if (button != null)
 		{
-			Storyboard fan = (Storyboard)this.FindResource("FanStoryboard");
-
-			while (true)
+			Twin? twin = button.DataContext as Twin;
+			if (twin != null)
 			{
-				if (_deviceManager.AllowSending())
-					fan.Begin();
-				else
-					fan.Stop();
-
-				await Task.Delay(1000);
+				string deviceId = twin.DeviceId;
+				if (!string.IsNullOrEmpty(deviceId))
+					await _iotHub.SendMethodAsync(new MethodDataRequest
+					{
+						DeviceId = deviceId,
+						MethodName = "start"
+					});
 			}
 		}
+	}
+	catch (Exception ex) { Debug.WriteLine(ex.Message); }
+}
+
+private async void StopButton_Click(object sender, RoutedEventArgs e)
+{
+	try
+	{
+		Button? button = sender as Button;
+		if (button != null)
+		{
+			Twin? twin = button.DataContext as Twin;
+			if (twin != null)
+			{
+				string deviceId = twin.DeviceId;
+				if (!string.IsNullOrEmpty(deviceId))
+					await _iotHub.SendMethodAsync(new MethodDataRequest
+					{
+						DeviceId = deviceId,
+						MethodName = "stop"
+					});
+			}
+		}
+	}
+	catch (Exception ex) { Debug.WriteLine(ex.Message); }
+}
+
+
 
 
 		private async Task GetDevicesTwinAsync()
@@ -85,69 +153,18 @@ namespace GoMrDevice
 					await Task.Delay(1000);
 				}
 			}
-			catch (Exception ex) { Debug.WriteLine(ex.Message); }
+			catch (Exception ex)
+			{
+				Debug.WriteLine(ex.Message);
+			}
 		}
 
-		private async void StartButton_Click(object sender, RoutedEventArgs e)
-		{
-			try
-			{
-				Button? button = sender as Button;
-				if (button != null)
-				{
-					Twin? twin = button.DataContext as Twin;
-					if (twin != null)
-					{
-						string deviceId = twin.DeviceId;
-						if (!string.IsNullOrEmpty(deviceId))
-							await _iotHub.SendMethodAsync(new MethodDataRequest
-							{
-								DeviceId = deviceId,
-								MethodName = "start"
-							});
-					}
-				}
-			}
-			catch (Exception ex) { Debug.WriteLine(ex.Message); }
-		}
-
-		private async void StopButton_Click(object sender, RoutedEventArgs e)
-		{
-			try
-			{
-				Button? button = sender as Button;
-				if (button != null)
-				{
-					Twin? twin = button.DataContext as Twin;
-					if (twin != null)
-					{
-						string deviceId = twin.DeviceId;
-						if (!string.IsNullOrEmpty(deviceId))
-							await _iotHub.SendMethodAsync(new MethodDataRequest
-							{
-								DeviceId = deviceId,
-								MethodName = "stop"
-							});
-					}
-				}
-			}
-			catch (Exception ex) { Debug.WriteLine(ex.Message); }
-		}
 
 		
-		public async Task SendDataAsync(string dataAsJson)
-		{
 
 
-			if (!string.IsNullOrEmpty(dataAsJson))
-			{
-				var message = new Message(Encoding.UTF8.GetBytes(dataAsJson));
-				await Configuration.DeviceClient.SendEventAsync(message);
-				//Console.WriteLine($"Message sent at {DateTime.Now} with data {dataAsJson}");
-
-			}
 
 
-		}
+
 	}
 }

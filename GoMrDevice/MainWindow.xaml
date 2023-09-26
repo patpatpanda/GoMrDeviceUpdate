@@ -39,17 +39,41 @@
         </Grid>
 
         <!-- Message (adjusted position and white text color) -->
-        <TextBlock Text="The fan will spin if it's on" FontSize="14" Margin="0 200 0 250" HorizontalAlignment="Center" VerticalAlignment="Bottom" Foreground="White" />
+        <TextBlock x:Name="MessageTextBlock" FontSize="14" Margin="0 200 0 250" HorizontalAlignment="Center" VerticalAlignment="Bottom" Foreground="White" />
+
 
         <!-- Display the result from your method -->
-        <!-- YourResultTextBlock here -->
+       
 
         <!-- Devices List with Gray Background, Header, and Positioned at the Bottom-Right Corner -->
+        
         <DockPanel VerticalAlignment="Bottom" HorizontalAlignment="Right">
             <StackPanel Background="LightGray" Width="300">
                 <TextBlock HorizontalAlignment="Center" FontWeight="Bold" FontSize="14" Padding="5">All Devices</TextBlock>
                 <ListView x:Name="DeviceListView" HorizontalContentAlignment="Stretch" ItemsSource="{Binding DeviceTwinList}" DisplayMemberPath="DeviceId">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Device ID" Width="150" DisplayMemberBinding="{Binding DeviceId}" />
+                            <!-- Lägg till en kolumn för Start-knappen -->
+                            <GridViewColumn Width="100">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="Start" Click="StartButton_Click" DataContext="{Binding}" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <!-- Lägg till en kolumn för Stop-knappen -->
+                            <GridViewColumn Width="100">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="Stop" Click="StopButton_Click" DataContext="{Binding}" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                        </GridView>
+                    </ListView.View>
                 </ListView>
+
             </StackPanel>
         </DockPanel>
     </Grid>
