@@ -5,7 +5,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:GoMrDevice.MVVM.Views"
              xmlns:viewModels="clr-namespace:GoMrDevice.MVVM.ViewModels"
-            
+             xmlns:controls="clr-namespace:GoMrDevice.MVVM.Controls"
+
              d:DataContext="{d:DesignInstance Type=viewModels:HomeViewModel}"
             
 
@@ -30,6 +31,9 @@
                 </Grid.ColumnDefinitions>
 
                 <!--Weather Section-->
+                <controls:WeatherControls Grid.Column="0" />
+               
+             
 
                 <!--DateTime Section-->
                 <StackPanel Grid.Column="1" HorizontalAlignment="Center">

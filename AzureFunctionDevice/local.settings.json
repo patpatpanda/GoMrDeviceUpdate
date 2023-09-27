@@ -1,0 +1,15 @@
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=localhost;Database=DeviceDatabase; TrustServerCertificate=true; Trusted_Connection=True;MultipleActiveResultSets=true"
+  },
+
+
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+    "IotHubEndpoint": "Endpoint=sb://ihsuprodamres117dednamespace.servicebus.windows.net/;SharedAccessKeyName=iothubowner;SharedAccessKey=fUwugjRnWfRPHa5sB+yBDMO7Oqzg7yku6AIoTKh4Z5Q=;EntityPath=iothub-ehub-iot-warrio-25230142-3ad8e367d4"
+
+
+  }
+}

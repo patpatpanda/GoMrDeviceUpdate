@@ -21,10 +21,10 @@
     </Window.Resources>
     <Grid>
         <!-- Existing content -->
-        <Image Source="Assets/Images/living.jpg" Stretch="Fill" />
+        <Image Source="Assets/Images/hawaii.png" Stretch="Fill" />
 
         <ContentControl Content="{Binding CurrentViewModel}" />
-        <controls:WeatherControls Grid.Column="0" />
+        
 
         <!-- Centered Fan controls -->
         <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
@@ -46,35 +46,41 @@
        
 
         <!-- Devices List with Gray Background, Header, and Positioned at the Bottom-Right Corner -->
-        
+
         <DockPanel VerticalAlignment="Bottom" HorizontalAlignment="Right">
-            <StackPanel Background="LightGray" Width="300">
-                <TextBlock HorizontalAlignment="Center" FontWeight="Bold" FontSize="14" Padding="5">All Devices</TextBlock>
-                <ListView x:Name="DeviceListView" HorizontalContentAlignment="Stretch" ItemsSource="{Binding DeviceTwinList}" DisplayMemberPath="DeviceId">
+            <StackPanel Background="PaleTurquoise" Width="300">
+               
+                <ListView x:Name="DeviceListView" Background="#80FFFFFF" HorizontalContentAlignment="Stretch" ItemsSource="{Binding DeviceTwinList}" DisplayMemberPath="DeviceId">
                     <ListView.View>
                         <GridView>
                             <GridViewColumn Header="Device ID" Width="150" DisplayMemberBinding="{Binding DeviceId}" />
-                            <!-- Lägg till en kolumn för Start-knappen -->
+                            <!-- Add a column for Start and Stop buttons -->
                             <GridViewColumn Width="100">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
-                                        <Button Content="Start" Click="StartButton_Click" DataContext="{Binding}" />
+                                        <Button  Click="StartButton_Click" DataContext="{Binding}" Style="{StaticResource DeviceButtonStyle}" />
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
-                            <!-- Lägg till en kolumn för Stop-knappen -->
                             <GridViewColumn Width="100">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
-                                        <Button Content="Stop" Click="StopButton_Click" DataContext="{Binding}" />
+                                        <Button Width="25" Height="25" Click="StopButton_Click" DataContext="{Binding}" Style="{StaticResource StopButtonStyle}">
+                                            <Button.ContentTemplate>
+                                                <DataTemplate>
+                                                    <Path Width="15" Height="15" Fill="White" Data="M2,2 L30,30 M2,30 L30,2" Stretch="Uniform" />
+                                                </DataTemplate>
+                                            </Button.ContentTemplate>
+                                        </Button>
+
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
                         </GridView>
                     </ListView.View>
                 </ListView>
-
             </StackPanel>
         </DockPanel>
+
     </Grid>
 </Window>
