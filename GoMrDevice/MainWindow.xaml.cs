@@ -46,6 +46,7 @@ public partial class MainWindow : Window
 
 	private async Task ToggleFanStateAsync()
 	{
+		
 		var fan = (Storyboard)FindResource("FanStoryboard");
 
 		while (true)
