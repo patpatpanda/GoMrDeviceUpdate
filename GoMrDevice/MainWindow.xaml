@@ -48,7 +48,7 @@
         <!-- Devices List with Gray Background, Header, and Positioned at the Bottom-Right Corner -->
 
         <DockPanel VerticalAlignment="Bottom" HorizontalAlignment="Right">
-            <StackPanel Background="PaleTurquoise" Width="300">
+            <StackPanel Background="White" Width="300">
                
                 <ListView x:Name="DeviceListView" Background="#80FFFFFF" HorizontalContentAlignment="Stretch" ItemsSource="{Binding DeviceTwinList}" DisplayMemberPath="DeviceId">
                     <ListView.View>

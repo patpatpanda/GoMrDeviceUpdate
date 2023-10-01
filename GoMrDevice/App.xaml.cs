@@ -28,28 +28,28 @@ namespace GoMrDevice
 				.ConfigureServices((config, services) =>
 				{
 					services.AddSingleton<MainWindow>();
+
+					// Add configuration for "Device" connection string
 					services.AddSingleton(new DeviceConfiguration(config.Configuration.GetConnectionString("Device")!));
+
+					// Add configuration for "Lamp_Device" connection string
+				
+
 					services.AddSingleton<DeviceManager>();
 					services.AddSingleton<DateTimeService>();
 					services.AddSingleton<NavigationStore>();
 					services.AddSingleton<FanService>();
-				
-					
-					
-						// Create an instance of IoTHubManager with your options here
-						services.AddSingleton(new IoTHubManager(new IotHubManagerOptions
-						{
-							IotHubConnectionString = "HostName=iot-warrior.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=fUwugjRnWfRPHa5sB+yBDMO7Oqzg7yku6AIoTKh4Z5Q=",
-							
-							EventHubEndpoint = "Endpoint=sb://ihsuprodamres117dednamespace.servicebus.windows.net/;SharedAccessKeyName=iothubowner;SharedAccessKey=fUwugjRnWfRPHa5sB+yBDMO7Oqzg7yku6AIoTKh4Z5Q=;EntityPath=iothub-ehub-iot-warrio-25230142-3ad8e367d4",
-							EventHubName = "iothub-ehub-iot-warrio-25230142-3ad8e367d4",
-							ConsumerGroup = "serviceapplication"
-						}));
-					
 
-
-
+					// Create an instance of IoTHubManager with your options here
+					services.AddSingleton(new IoTHubManager(new IotHubManagerOptions
+					{
+						IotHubConnectionString = "HostName=iot-warrior.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=fUwugjRnWfRPHa5sB+yBDMO7Oqzg7yku6AIoTKh4Z5Q=",
+						EventHubEndpoint = "Endpoint=sb://ihsuprodamres117dednamespace.servicebus.windows.net/;SharedAccessKeyName=iothubowner;SharedAccessKey=fUwugjRnWfRPHa5sB+yBDMO7Oqzg7yku6AIoTKh4Z5Q=;EntityPath=iothub-ehub-iot-warrio-25230142-3ad8e367d4",
+						EventHubName = "iothub-ehub-iot-warrio-25230142-3ad8e367d4",
+						ConsumerGroup = "serviceapplication"
+					}));
 				})
+
 
 				.Build();
 		}
