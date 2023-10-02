@@ -19,6 +19,7 @@ namespace GoMrDevice.Services
 		private RegistryManager _registryManager;
 		private ServiceClient _serviceClient;
 		private EventHubConsumerClient _consumerClient;
+		internal readonly DeviceClient DeviceClient;
 
 		public IoTHubManager(IotHubManagerOptions options)
 		{
