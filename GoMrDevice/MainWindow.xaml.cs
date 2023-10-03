@@ -23,6 +23,7 @@ public partial class MainWindow : Window
 	private readonly DeviceManager _deviceManager;
 	private readonly FanService _fanService;
 	private readonly IoTHubManager _iotHub;
+	private readonly MainWindowHelper _helper;
 
 	public MainWindow(DeviceManager deviceManager, NavigationStore navigationStore, IoTHubManager iotHub,
 		FanService fanService, DeviceConfiguration configuration)
@@ -36,6 +37,7 @@ public partial class MainWindow : Window
 		DeviceListView.ItemsSource = DeviceTwinList;
 
 		DataContext = navigationStore;
+		_helper = new MainWindowHelper(iotHub, fanService);
 
 		Task.WhenAll(ToggleFanStateAsync(), GetDevicesTwinAsync(), SendTelemetryAsync());
 	}
@@ -43,7 +45,15 @@ public partial class MainWindow : Window
 	public ObservableCollection<Twin> DeviceTwinList { get; set; } = new();
 	public DeviceConfiguration Configuration { get; set; }
 
+	private void StartButton_Click(object sender, RoutedEventArgs e)
+	{
+		_helper.StartDevice(sender as Button);
+	}
 
+	private void StopButton_Click(object sender, RoutedEventArgs e)
+	{
+		_helper.StopDevice(sender as Button);
+	}
 	private async Task ToggleFanStateAsync()
 	{
 		
@@ -63,7 +73,7 @@ public partial class MainWindow : Window
 				fan.Stop();
 				SetMessage("The fan is OFF.");
 			}
-
+			
 			await Task.Delay(1000);
 		}
 	}
@@ -75,82 +85,8 @@ public partial class MainWindow : Window
 	}
 
 
-	private async Task UpdateFanStatusAsync(string status)
-	{
-		try
-		{
-			if (Configuration.DeviceClient != null)
-				await DeviceTwinManager.UpdateReportedTwinAsync(Configuration.DeviceClient, "fanStatus", status);
-		}
-		catch (Exception ex)
-		{
-			Debug.WriteLine(ex.Message);
-		}
-	}
-
-	private async void StartButton_Click(object sender, RoutedEventArgs e)
-	{
-		try
-		{
-			var button = sender as Button;
-			if (button != null)
-			{
-				var twin = button.DataContext as Twin;
-				if (twin != null)
-				{
-					var deviceId = twin.DeviceId;
-					if (!string.IsNullOrEmpty(deviceId))
-					{
-						await _iotHub.SendMethodAsync(new MethodDataRequest
-						{
-							DeviceId = deviceId,
-							MethodName = "start"
-						});
-
-						_fanService.TurnOn();
-					}
-				}
-
-				await UpdateFanStatusAsync("On");
-			}
-		}
-		catch (Exception ex)
-		{
-			Debug.WriteLine(ex.Message);
-		}
-	}
-
-	private async void StopButton_Click(object sender, RoutedEventArgs e)
-	{
-		try
-		{
-			var button = sender as Button;
-			if (button != null)
-			{
-				var twin = button.DataContext as Twin;
-				if (twin != null)
-				{
-					var deviceId = twin.DeviceId;
-					if (!string.IsNullOrEmpty(deviceId))
-					{
-						await _iotHub.SendMethodAsync(new MethodDataRequest
-						{
-							DeviceId = deviceId,
-							MethodName = "stop"
-						});
-
-						_fanService.TurnOff();
-					}
-				}
-
-				await UpdateFanStatusAsync("Off");
-			}
-		}
-		catch (Exception ex)
-		{
-			Debug.WriteLine(ex.Message);
-		}
-	}
+	
+	
 
 
 	private async Task GetDevicesTwinAsync()
