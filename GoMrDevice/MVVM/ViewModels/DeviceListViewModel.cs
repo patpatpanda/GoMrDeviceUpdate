@@ -53,7 +53,7 @@ namespace GoMrDevice.MVVM.ViewModels
 			var twins = await GetDevicesAsTwinAsync();
 			DeviceTwinList = new ObservableCollection<Twin>(twins);
 		}
-		
+
 
 		public async Task<IEnumerable<Twin>> GetDevicesAsTwinAsync(string sqlQuery = "select * from devices")
 		{
@@ -79,7 +79,7 @@ namespace GoMrDevice.MVVM.ViewModels
 				var registryManager = RegistryManager.CreateFromConnectionString(connectionString);
 				var result = registryManager.CreateQuery(sqlQuery);
 
-				if (result.HasMoreResults)
+				if (result != null && result.HasMoreResults)
 				{
 					foreach (var device in await result.GetNextAsTwinAsync())
 					{
@@ -94,8 +94,9 @@ namespace GoMrDevice.MVVM.ViewModels
 				Debug.WriteLine($"Error in GetDevicesAsTwinAsync: {ex.Message}");
 			}
 
-			return null!;
+			return Enumerable.Empty<Twin>();
 		}
+
 		public async Task UpdateDeviceTwinListAsync(ObservableCollection<Twin> deviceTwinList)
 		{
 			try

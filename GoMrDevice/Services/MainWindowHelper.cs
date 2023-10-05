@@ -142,19 +142,34 @@ public class MainWindowHelper
 			while (true)
 			{
 				var twins = await _iotHub.GetDevicesAsTwinAsync();
-				DeviceTwinList.Clear();
 
-				foreach (var twin in twins)
-					DeviceTwinList.Add(twin);
+				if (twins != null)
+				{
+					// Clear the existing items in DeviceTwinList
+					DeviceTwinList.Clear();
+
+					// Add the new twins to DeviceTwinList
+					foreach (var twin in twins)
+					{
+						DeviceTwinList.Add(twin);
+					}
+				}
+				else
+				{
+					// Handle the case where twins is null
+					Debug.WriteLine("No twins returned from the IoT Hub.");
+				}
 
 				await Task.Delay(1000);
 			}
 		}
 		catch (Exception ex)
 		{
-			Debug.WriteLine(ex.Message);
+			Debug.WriteLine($"Error in GetDevicesTwinAsync: {ex.Message}");
 		}
 	}
+
+
 
 
 
@@ -165,26 +180,35 @@ public class MainWindowHelper
 			while (true)
 			{
 				var twins = await _iotHub.GetDevicesAsTwinAsync();
-				var existingDeviceIds = deviceTwinList.Select(twin => twin.DeviceId).ToList();
 
-				// Lägg till nya enheter
-				foreach (var twin in twins)
+				if (twins != null)
 				{
-					if (!existingDeviceIds.Contains(twin.DeviceId))
+					var existingDeviceIds = deviceTwinList.Select(twin => twin.DeviceId).ToList();
+
+					// Lägg till nya enheter
+					foreach (var twin in twins)
 					{
-						deviceTwinList.Add(twin);
+						if (!existingDeviceIds.Contains(twin.DeviceId))
+						{
+							deviceTwinList.Add(twin);
+						}
+					}
+
+					// Ta bort enheter som har tagits bort från IoT-hubb
+					var removedDeviceIds = existingDeviceIds.Except(twins.Select(twin => twin.DeviceId)).ToList();
+					foreach (var removedDeviceId in removedDeviceIds)
+					{
+						var twinToRemove = deviceTwinList.FirstOrDefault(twin => twin.DeviceId == removedDeviceId);
+						if (twinToRemove != null)
+						{
+							deviceTwinList.Remove(twinToRemove);
+						}
 					}
 				}
-
-				// Ta bort enheter som har tagits bort från IoT-hubb
-				var removedDeviceIds = existingDeviceIds.Except(twins.Select(twin => twin.DeviceId)).ToList();
-				foreach (var removedDeviceId in removedDeviceIds)
+				else
 				{
-					var twinToRemove = deviceTwinList.FirstOrDefault(twin => twin.DeviceId == removedDeviceId);
-					if (twinToRemove != null)
-					{
-						deviceTwinList.Remove(twinToRemove);
-					}
+					// Handle the case where twins is null
+					Debug.WriteLine("No twins returned from the IoT Hub.");
 				}
 
 				await Task.Delay(1000);
@@ -195,28 +219,8 @@ public class MainWindowHelper
 			Debug.WriteLine(ex.Message);
 		}
 	}
-	public async Task RemoveDeviceFromIoTHub(string deviceId)
-	{
-		var iotHubConnectionString = _config.GetConnectionString("IoTHubConnectionString");
 
-		var registryManager = RegistryManager.CreateFromConnectionString(iotHubConnectionString);
 
-		try
-		{
-
-			await registryManager.RemoveDeviceAsync(deviceId);
-		}
-		catch (Exception ex)
-		{
-
-			Debug.WriteLine($"Fel vid borttagning av enhet: {ex.Message}");
-			throw;
-		}
-		finally
-		{
-			registryManager.CloseAsync().Wait();
-		}
-	}
 
 
 

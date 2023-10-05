@@ -58,10 +58,18 @@ namespace GoMrDevice.MVVM.Controls
 				while (true)
 				{
 					var twins = await GetDevicesAsTwinAsync();
-					_deviceTwinList.Clear();
+					if (twins != null)
+					{
+						_deviceTwinList.Clear();
 
-					foreach (var twin in twins)
-						_deviceTwinList.Add(twin);
+						foreach (var twin in twins)
+						{
+							if (twin != null)
+							{
+								_deviceTwinList.Add(twin);
+							}
+						}
+					}
 
 					await Task.Delay(1000);
 				}
@@ -123,8 +131,7 @@ namespace GoMrDevice.MVVM.Controls
 				{
 					await _helper.RemoveDeviceFromIoTHub(selectedDevice.DeviceId);
 
-					// Update the ObservableCollection within the DeviceListControl
-					await _helper.UpdateDeviceTwinListAsync(_deviceTwinList);
+					
 				}
 				catch (Exception ex)
 				{
