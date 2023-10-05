@@ -18,13 +18,16 @@
                 RepeatBehavior="Forever"
             />
         </Storyboard>
+
+        <!-- Style for the Remove button -->
+        
+
     </Window.Resources>
     <Grid>
         <!-- Existing content -->
         <Image Source="Assets/Images/hawaii.png" Stretch="Fill" />
 
         <ContentControl Content="{Binding CurrentViewModel}" />
-        
 
         <!-- Centered Fan controls -->
         <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
@@ -41,27 +44,22 @@
         <!-- Message (adjusted position and white text color) -->
         <TextBlock x:Name="MessageTextBlock" FontSize="14" Margin="0 200 0 250" HorizontalAlignment="Center" VerticalAlignment="Bottom" Foreground="White" />
 
-
-        <!-- Display the result from your method -->
-       
-
         <!-- Devices List with Gray Background, Header, and Positioned at the Bottom-Right Corner -->
-
         <DockPanel VerticalAlignment="Bottom" HorizontalAlignment="Right">
-            <StackPanel Background="White" Width="300">
-               
+            <StackPanel Background="White" Width="500">
                 <ListView x:Name="DeviceListView" Background="SlateGray" HorizontalContentAlignment="Stretch" ItemsSource="{Binding DeviceTwinList}" DisplayMemberPath="DeviceId">
                     <ListView.View>
                         <GridView>
                             <GridViewColumn Header="Device ID" Width="150" DisplayMemberBinding="{Binding DeviceId}" />
-                            <!-- Add a column for Start and Stop buttons -->
+                            <!-- Start Button Column -->
                             <GridViewColumn Width="100">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
-                                        <Button  Click="StartButton_Click" DataContext="{Binding}" Style="{StaticResource DeviceButtonStyle}" />
+                                        <Button Click="StartButton_Click" DataContext="{Binding}" Style="{StaticResource DeviceButtonStyle}" />
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
+                            <!-- Stop Button Column -->
                             <GridViewColumn Width="100">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
@@ -72,7 +70,20 @@
                                                 </DataTemplate>
                                             </Button.ContentTemplate>
                                         </Button>
-
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <!-- Remove Button Column -->
+                            <GridViewColumn Width="100">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Width="25" Height="25" Click="RemoveDeviceButton_Click" DataContext="{Binding}" Style="{StaticResource RemoveButtonStyle}">
+                                            <Button.ContentTemplate>
+                                                <DataTemplate>
+                                                    <Path Width="15" Height="15" Fill="White" Data="M2,2 L30,30 M2,30 L30,2" Stretch="Uniform" />
+                                                </DataTemplate>
+                                            </Button.ContentTemplate>
+                                        </Button>
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
@@ -81,6 +92,5 @@
                 </ListView>
             </StackPanel>
         </DockPanel>
-
     </Grid>
 </Window>

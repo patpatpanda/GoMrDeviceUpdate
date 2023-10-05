@@ -9,8 +9,10 @@ using System.Windows.Media.Animation;
 using GoMrDevice.Models;
 using GoMrDevice.MVVM.Core;
 using GoMrDevice.Services;
+using Microsoft.Azure.Devices;
 using Microsoft.Azure.Devices.Client;
 using Microsoft.Azure.Devices.Shared;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 
 namespace GoMrDevice;
@@ -24,21 +26,23 @@ public partial class MainWindow : Window
 	private readonly FanService _fanService;
 	private readonly IoTHubManager _iotHub;
 	private readonly MainWindowHelper _helper;
+	private readonly IConfiguration _config;
 
 
 	public MainWindow(DeviceManager deviceManager, NavigationStore navigationStore, IoTHubManager iotHub,
-		FanService fanService, DeviceConfiguration configuration)
+		FanService fanService, DeviceConfiguration configuration,IConfiguration config)
 	{
 		InitializeComponent();
 		Configuration = configuration;
 		_deviceManager = deviceManager;
 		_iotHub = iotHub;
 		_fanService = fanService;
+		_config = config;
 
 		DeviceListView.ItemsSource = DeviceTwinList;
 
 		DataContext = navigationStore;
-		_helper = new MainWindowHelper(iotHub, fanService, configuration);
+		_helper = new MainWindowHelper(iotHub, fanService, configuration,_config);
 
 
 		Task.WhenAll(ToggleFanStateAsync(), _helper.GetDevicesTwinAsync(),_helper.SendTelemetryAsync(Configuration, _fanService),
@@ -57,6 +61,29 @@ public partial class MainWindow : Window
 	{
 		_helper.StopDevice(sender as Button);
 	}
+
+
+	private async void RemoveDeviceButton_Click(object sender, RoutedEventArgs e)
+	{
+		var selectedDevice = ((Button)sender).DataContext as Twin;
+
+		if (selectedDevice != null)
+		{
+			try
+			{
+				
+				await _helper.RemoveDeviceFromIoTHub(selectedDevice.DeviceId); // Implementera denna metod
+
+				// Uppdatera din ObservableCollection
+				await _helper. UpdateDeviceTwinListAsync(DeviceTwinList);
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine(ex.Message);
+			}
+		}
+	}
+	
 	private async Task ToggleFanStateAsync()
 	{
 		

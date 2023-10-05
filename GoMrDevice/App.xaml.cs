@@ -33,7 +33,7 @@ namespace GoMrDevice
 					services.AddSingleton(new DeviceConfiguration(config.Configuration.GetConnectionString("Device")!));
 
 					// Add configuration for "Lamp_Device" connection string
-				
+					var iotHubConnectionString = config.Configuration.GetConnectionString("IoTHubConnectionString");
 
 					services.AddSingleton<DeviceManager>();
 					services.AddSingleton<DateTimeService>();
