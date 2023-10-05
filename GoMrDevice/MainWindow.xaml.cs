@@ -63,26 +63,7 @@ public partial class MainWindow : Window
 	}
 
 
-	private async void RemoveDeviceButton_Click(object sender, RoutedEventArgs e)
-	{
-		var selectedDevice = ((Button)sender).DataContext as Twin;
-
-		if (selectedDevice != null)
-		{
-			try
-			{
-				
-				await _helper.RemoveDeviceFromIoTHub(selectedDevice.DeviceId); // Implementera denna metod
-
-				// Uppdatera din ObservableCollection
-				await _helper. UpdateDeviceTwinListAsync(DeviceTwinList);
-			}
-			catch (Exception ex)
-			{
-				Debug.WriteLine(ex.Message);
-			}
-		}
-	}
+	
 	
 	private async Task ToggleFanStateAsync()
 	{

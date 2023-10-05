@@ -16,6 +16,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using GoMrDevice.Models;
+using GoMrDevice.MVVM.ViewModels;
 using GoMrDevice.Services;
 using Microsoft.Azure.Devices;
 using Microsoft.Azure.Devices.Shared;
@@ -32,6 +33,7 @@ namespace GoMrDevice.MVVM.Controls
 		private readonly ObservableCollection<Twin> _deviceTwinList = new ObservableCollection<Twin>();
 		
 
+		public DeviceListViewModel _helper = new DeviceListViewModel();
 
 		public DeviceListControl()
 		{
@@ -41,9 +43,14 @@ namespace GoMrDevice.MVVM.Controls
 			Loaded += async (sender, e) =>
 			{
 				await GetDevicesTwinAsync();
+				
+
 			};
 		}
-
+		public async Task LoadDeviceTwinDataAsync()
+		{
+			await _helper.LoadDeviceTwinDataAsync();
+		}
 		public async Task GetDevicesTwinAsync()
 		{
 			try
@@ -106,7 +113,30 @@ namespace GoMrDevice.MVVM.Controls
 
 			return null!;
 		}
-		
+		private async void RemoveDeviceButton_Click(object sender, RoutedEventArgs e)
+		{
+			var selectedDevice = ((Button)sender).DataContext as Twin;
+
+			if (selectedDevice != null)
+			{
+				try
+				{
+					await _helper.RemoveDeviceFromIoTHub(selectedDevice.DeviceId);
+
+					// Update the ObservableCollection within the DeviceListControl
+					await _helper.UpdateDeviceTwinListAsync(_deviceTwinList);
+				}
+				catch (Exception ex)
+				{
+					Debug.WriteLine(ex.Message);
+				}
+			}
+		}
+
+
+
+
+
 
 	}
 }

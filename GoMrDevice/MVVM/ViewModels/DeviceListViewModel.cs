@@ -8,14 +8,26 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Devices;
 using Microsoft.Azure.Devices.Shared;
 using Microsoft.Extensions.Configuration;
+using System.Linq;
 
 namespace GoMrDevice.MVVM.ViewModels
 {
 	public class DeviceListViewModel : INotifyPropertyChanged
 	{
-		private ObservableCollection<Twin> _deviceTwinList;
-
+		private readonly IConfiguration _configuration;
 		public event PropertyChangedEventHandler PropertyChanged;
+		public DeviceListViewModel()
+		{
+			// Create the IConfiguration instance once in the constructor
+			_configuration = new ConfigurationBuilder()
+				.SetBasePath(Directory.GetCurrentDirectory())
+				.AddJsonFile("appsettings.json")
+				.Build();
+		}
+
+
+
+		private ObservableCollection<Twin> _deviceTwinList = new ObservableCollection<Twin>();
 
 		public ObservableCollection<Twin> DeviceTwinList
 		{
@@ -26,10 +38,10 @@ namespace GoMrDevice.MVVM.ViewModels
 				{
 					_deviceTwinList = value;
 					OnPropertyChanged(nameof(DeviceTwinList));
-					Debug.WriteLine("DeviceTwinList property set.");
 				}
 			}
 		}
+
 
 		// This method is used to raise the PropertyChanged event
 		protected virtual void OnPropertyChanged(string propertyName)
@@ -41,26 +53,7 @@ namespace GoMrDevice.MVVM.ViewModels
 			var twins = await GetDevicesAsTwinAsync();
 			DeviceTwinList = new ObservableCollection<Twin>(twins);
 		}
-		public async Task GetDevicesTwinAsync()
-		{
-			try
-			{
-				while (true)
-				{
-					var twins = await GetDevicesAsTwinAsync();
-					_deviceTwinList.Clear();
-
-					foreach (var twin in twins)
-						_deviceTwinList.Add(twin);
-
-					await Task.Delay(1000);
-				}
-			}
-			catch (Exception ex)
-			{
-				Debug.WriteLine(ex.Message);
-			}
-		}
+		
 
 		public async Task<IEnumerable<Twin>> GetDevicesAsTwinAsync(string sqlQuery = "select * from devices")
 		{
@@ -103,7 +96,65 @@ namespace GoMrDevice.MVVM.ViewModels
 
 			return null!;
 		}
+		public async Task UpdateDeviceTwinListAsync(ObservableCollection<Twin> deviceTwinList)
+		{
+			try
+			{
+				while (true)
+				{
+					var twins = await GetDevicesAsTwinAsync();
+					var existingDeviceIds = deviceTwinList.Select(twin => twin.DeviceId).ToList();
 
+					// Lägg till nya enheter
+					foreach (var twin in twins)
+					{
+						if (!existingDeviceIds.Contains(twin.DeviceId))
+						{
+							deviceTwinList.Add(twin);
+						}
+					}
+
+					// Ta bort enheter som har tagits bort från IoT-hubb
+					var removedDeviceIds = existingDeviceIds.Except(twins.Select(twin => twin.DeviceId)).ToList();
+					foreach (var removedDeviceId in removedDeviceIds)
+					{
+						var twinToRemove = deviceTwinList.FirstOrDefault(twin => twin.DeviceId == removedDeviceId);
+						if (twinToRemove != null)
+						{
+							deviceTwinList.Remove(twinToRemove);
+						}
+					}
+
+					await Task.Delay(1000);
+				}
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine(ex.Message);
+			}
+		}
+		public async Task RemoveDeviceFromIoTHub(string deviceId)
+		{
+			var iotHubConnectionString = _configuration.GetConnectionString("IoTHubConnectionString");
+
+			var registryManager = RegistryManager.CreateFromConnectionString(iotHubConnectionString);
+
+			try
+			{
+
+				await registryManager.RemoveDeviceAsync(deviceId);
+			}
+			catch (Exception ex)
+			{
+
+				Debug.WriteLine($"Fel vid borttagning av enhet: {ex.Message}");
+				throw;
+			}
+			finally
+			{
+				registryManager.CloseAsync().Wait();
+			}
+		}
 
 	}
 	// Rest of your ViewModel code
