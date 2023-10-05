@@ -12,7 +12,9 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-namespace GoMrDevice.MVVM.Views
+ using GoMrDevice.MVVM.ViewModels;
+
+ namespace GoMrDevice.MVVM.Views
 {
 	/// <summary>
 	/// Interaction logic for SettingsViews.xaml
@@ -22,6 +24,13 @@ namespace GoMrDevice.MVVM.Views
 		public SettingsView()
 		{
 			InitializeComponent();
+			var deviceListViewModel = new DeviceListViewModel();
+
+			// Set the DataContext of your DeviceListControl
+			DeviceListControl.DataContext = deviceListViewModel;
+
+			// Fetch and set the data
+			Task.WhenAll(deviceListViewModel.LoadDeviceTwinDataAsync());
 		}
 	}
 }
