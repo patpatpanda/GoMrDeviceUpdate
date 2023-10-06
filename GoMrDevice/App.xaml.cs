@@ -6,7 +6,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Windows;
-
+using GoMrDevice.Data;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace GoMrDevice
@@ -24,9 +25,14 @@ namespace GoMrDevice
 				.ConfigureAppConfiguration((context, config) =>
 				{
 					config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+
 				})
 				.ConfigureServices((config, services) =>
 				{
+					services.AddDbContext<ApplicationDbContext>(options =>
+					{
+						options.UseSqlServer(config.Configuration.GetConnectionString("DefaultConnection"));
+					});
 					services.AddSingleton<MainWindow>();
 
 					// Add configuration for "Device" connection string
@@ -48,6 +54,11 @@ namespace GoMrDevice
 						EventHubName = "iothub-ehub-iot-warrio-25230142-3ad8e367d4",
 						ConsumerGroup = "serviceapplication"
 					}));
+
+
+					var serviceProvider = services.BuildServiceProvider();
+					var dbContext = serviceProvider.GetRequiredService<ApplicationDbContext>();
+					dbContext.Database.EnsureCreated();
 				})
 
 

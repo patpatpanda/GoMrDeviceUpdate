@@ -9,23 +9,35 @@ using Microsoft.Azure.Devices;
 using Microsoft.Azure.Devices.Shared;
 using Microsoft.Extensions.Configuration;
 using System.Linq;
+using GoMrDevice.Data;
+using GoMrDevice.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace GoMrDevice.MVVM.ViewModels
 {
 	public class DeviceListViewModel : INotifyPropertyChanged
 	{
+
+
 		private readonly IConfiguration _configuration;
-		public event PropertyChangedEventHandler PropertyChanged;
+		private readonly ApplicationDbContext _db;
+
+		// ...
+
 		public DeviceListViewModel()
 		{
-			// Create the IConfiguration instance once in the constructor
 			_configuration = new ConfigurationBuilder()
 				.SetBasePath(Directory.GetCurrentDirectory())
 				.AddJsonFile("appsettings.json")
 				.Build();
+			_db = new ApplicationDbContext(); // Create a new instance of ApplicationDbContext without parameters.
 		}
 
+		// ...
 
+
+
+		public event PropertyChangedEventHandler PropertyChanged;
 
 		private ObservableCollection<Twin> _deviceTwinList = new ObservableCollection<Twin>();
 
@@ -48,6 +60,7 @@ namespace GoMrDevice.MVVM.ViewModels
 		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
+
 		public async Task LoadDeviceTwinDataAsync()
 		{
 			var twins = await GetDevicesAsTwinAsync();
@@ -97,43 +110,8 @@ namespace GoMrDevice.MVVM.ViewModels
 			return Enumerable.Empty<Twin>();
 		}
 
-		public async Task UpdateDeviceTwinListAsync(ObservableCollection<Twin> deviceTwinList)
-		{
-			try
-			{
-				while (true)
-				{
-					var twins = await GetDevicesAsTwinAsync();
-					var existingDeviceIds = deviceTwinList.Select(twin => twin.DeviceId).ToList();
 
-					// Lägg till nya enheter
-					foreach (var twin in twins)
-					{
-						if (!existingDeviceIds.Contains(twin.DeviceId))
-						{
-							deviceTwinList.Add(twin);
-						}
-					}
 
-					// Ta bort enheter som har tagits bort från IoT-hubb
-					var removedDeviceIds = existingDeviceIds.Except(twins.Select(twin => twin.DeviceId)).ToList();
-					foreach (var removedDeviceId in removedDeviceIds)
-					{
-						var twinToRemove = deviceTwinList.FirstOrDefault(twin => twin.DeviceId == removedDeviceId);
-						if (twinToRemove != null)
-						{
-							deviceTwinList.Remove(twinToRemove);
-						}
-					}
-
-					await Task.Delay(1000);
-				}
-			}
-			catch (Exception ex)
-			{
-				Debug.WriteLine(ex.Message);
-			}
-		}
 		public async Task RemoveDeviceFromIoTHub(string deviceId)
 		{
 			var iotHubConnectionString = _configuration.GetConnectionString("IoTHubConnectionString");
@@ -142,12 +120,22 @@ namespace GoMrDevice.MVVM.ViewModels
 
 			try
 			{
-
 				await registryManager.RemoveDeviceAsync(deviceId);
+
+				// Skapa en ny RemovedDevice och fyll i egenskaperna
+				var removedDevice = new RemovedDevice
+				{
+					Name = deviceId,
+					Message = "Was deleted",
+					Date = DateTime.Now
+				};
+
+				// Lägg till removedDevice i din DbContext och spara ändringar
+				_db.RemovedDevices.Add(removedDevice);
+				await _db.SaveChangesAsync();
 			}
 			catch (Exception ex)
 			{
-
 				Debug.WriteLine($"Fel vid borttagning av enhet: {ex.Message}");
 				throw;
 			}
@@ -157,6 +145,7 @@ namespace GoMrDevice.MVVM.ViewModels
 			}
 		}
 
+		// Rest of your ViewModel code
 	}
-	// Rest of your ViewModel code
 }
+
