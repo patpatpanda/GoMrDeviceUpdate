@@ -30,7 +30,7 @@ namespace GoMrDevice.MVVM.ViewModels
 				.SetBasePath(Directory.GetCurrentDirectory())
 				.AddJsonFile("appsettings.json")
 				.Build();
-			_db = new ApplicationDbContext(); // Create a new instance of ApplicationDbContext without parameters.
+			_db = new ApplicationDbContext();
 		}
 
 		// ...
@@ -74,19 +74,19 @@ namespace GoMrDevice.MVVM.ViewModels
 			{
 				var devices = new List<Twin>();
 
-				// Access the configuration
+				
 				IConfiguration configuration = new ConfigurationBuilder()
 					.SetBasePath(Directory.GetCurrentDirectory())
 					.AddJsonFile("appsettings.json")
 					.Build();
 
-				// Retrieve the connection string
+				
 				var connectionString = configuration["ConnectionStrings:IoTHubConnectionString"];
 
 				if (string.IsNullOrEmpty(connectionString))
 				{
 					Debug.WriteLine("IoTHubConnectionString is missing or empty in configuration.");
-					return devices; // Return an empty list or handle the error as needed.
+					return devices; 
 				}
 
 				var registryManager = RegistryManager.CreateFromConnectionString(connectionString);
@@ -110,8 +110,7 @@ namespace GoMrDevice.MVVM.ViewModels
 			return Enumerable.Empty<Twin>();
 		}
 
-
-
+		
 		public async Task RemoveDeviceFromIoTHub(string deviceId)
 		{
 			var iotHubConnectionString = _configuration.GetConnectionString("IoTHubConnectionString");
@@ -122,7 +121,6 @@ namespace GoMrDevice.MVVM.ViewModels
 			{
 				await registryManager.RemoveDeviceAsync(deviceId);
 
-				// Skapa en ny RemovedDevice och fyll i egenskaperna
 				var removedDevice = new RemovedDevice
 				{
 					Name = deviceId,
@@ -130,7 +128,7 @@ namespace GoMrDevice.MVVM.ViewModels
 					Date = DateTime.Now
 				};
 
-				// Lägg till removedDevice i din DbContext och spara ändringar
+				
 				_db.RemovedDevices.Add(removedDevice);
 				await _db.SaveChangesAsync();
 			}
@@ -145,7 +143,7 @@ namespace GoMrDevice.MVVM.ViewModels
 			}
 		}
 
-		// Rest of your ViewModel code
+		
 	}
 }
 
